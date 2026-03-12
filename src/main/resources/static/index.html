@@ -6,6 +6,7 @@
     <title>Note2Mermaid</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <header>
@@ -123,10 +124,7 @@
                         ${note.imageData ? `<img src="/api/notes/${note.id}/image" class="note-image" alt="Notiz-Bild">` : ''}
                         <span class="note-type-badge ${note.contentType || 'TEXT'}">${note.contentType || 'TEXT'}</span>
                         <h3>${escapeHtml(note.title)}</h3>
-                        ${note.contentType === 'DIAGRAM' ? 
-                            `<div class="mermaid">${cleanMermaidCode(note.content || '')}</div>` : 
-                            `<p>${escapeHtml(note.content || '')}</p>`
-                        }
+                        ${renderNoteContent(note)}
                         <div class="note-meta">
                             <span>Erstellt: ${formatDate(note.createdAt)}</span>
                         </div>
@@ -170,6 +168,33 @@
                 .replace(/\\"/g, '"')        // \" zu echtem Quote
                 .replace(/\\\\/g, '\\')      // \\ zu echtem Backslash
                 .trim();
+        }
+        
+        // Escape-Sequenzen bereinigen (für Markdown und Text)
+        function cleanEscapeSequences(text) {
+            if (!text) return '';
+            return text
+                .replace(/\\n/g, '\n')
+                .replace(/\\"/g, '"')
+                .replace(/\\\\/g, '\\')
+                .trim();
+        }
+        
+        // Notiz-Inhalt je nach Typ rendern
+        function renderNoteContent(note) {
+            const content = note.content || '';
+            switch (note.contentType) {
+                case 'DIAGRAM':
+                    return `<div class="mermaid">${cleanMermaidCode(content)}</div>`;
+                case 'MARKDOWN':
+                    // Markdown zu HTML konvertieren
+                    const cleanedMarkdown = cleanEscapeSequences(content);
+                    return `<div class="markdown-content">${marked.parse(cleanedMarkdown)}</div>`;
+                case 'TEXT':
+                case 'IMAGE':
+                default:
+                    return `<p>${escapeHtml(content)}</p>`;
+            }
         }
         
         function formatDate(dateString) {

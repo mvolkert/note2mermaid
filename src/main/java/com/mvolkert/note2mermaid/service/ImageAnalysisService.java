@@ -49,7 +49,16 @@ public class ImageAnalysisService {
             - Generiere danach gültigen Mermaid-Code, der das Diagramm repräsentiert
             - Der Mermaid-Code sollte zwischen ```mermaid und ``` stehen
             
-            Wenn es Text enthält (Dokument, Whiteboard, Notizen, etc.):
+            Wenn es strukturierter Text ist (mit Überschriften, Aufzählungen, Nummerierungen, Tabellen):
+            - Antworte mit "TYPE: MARKDOWN"
+            - Formatiere den Text als Markdown:
+              - Überschriften mit # ## ###
+              - Aufzählungen mit - oder *
+              - Nummerierte Listen mit 1. 2. 3.
+              - Fettdruck mit **text**
+              - Kursiv mit *text*
+            
+            Wenn es einfacher Fließtext ist (ohne Struktur):
             - Antworte mit "TYPE: TEXT"
             - Extrahiere den gesamten lesbaren Text
             
@@ -86,9 +95,17 @@ public class ImageAnalysisService {
             // Escape-Sequenzen bereinigen
             mermaidCode = cleanMermaidCode(mermaidCode);
             result.setContent(mermaidCode);
+        } else if (response.contains("TYPE: MARKDOWN")) {
+            result.setType(ContentType.MARKDOWN);
+            String markdownContent = response.substring(response.indexOf("TYPE: MARKDOWN") + 14).trim();
+            // Escape-Sequenzen bereinigen (LLM gibt manchmal \n statt echte Newlines)
+            markdownContent = cleanEscapeSequences(markdownContent);
+            result.setContent(markdownContent);
         } else if (response.contains("TYPE: TEXT")) {
             result.setType(ContentType.TEXT);
-            result.setContent(response.substring(response.indexOf("TYPE: TEXT") + 10).trim());
+            String textContent = response.substring(response.indexOf("TYPE: TEXT") + 10).trim();
+            textContent = cleanEscapeSequences(textContent);
+            result.setContent(textContent);
         } else {
             result.setType(ContentType.IMAGE);
             result.setContent(response.replace("TYPE: IMAGE", "").trim());
@@ -101,15 +118,22 @@ public class ImageAnalysisService {
      * Bereinigt Mermaid-Code von Escape-Sequenzen und formatiert ihn korrekt.
      */
     private String cleanMermaidCode(String code) {
-        return code
+        return cleanEscapeSequences(code)
+                // Doppelte Leerzeichen entfernen
+                .replaceAll("  +", " ");
+    }
+
+    /**
+     * Bereinigt Text von Escape-Sequenzen (z.B. \n, \", \\).
+     */
+    private String cleanEscapeSequences(String text) {
+        return text
                 // Escaped newlines zu echten Zeilenumbrüchen
                 .replace("\\n", "\n")
                 // Escaped Quotes zu normalen Quotes
                 .replace("\\\"", "\"")
                 // Escaped Backslashes
                 .replace("\\\\", "\\")
-                // Doppelte Leerzeichen entfernen
-                .replaceAll("  +", " ")
                 // Leere Zeilen am Anfang/Ende entfernen
                 .trim();
     }
@@ -138,6 +162,7 @@ public class ImageAnalysisService {
     public enum ContentType {
         TEXT,
         DIAGRAM,
-        IMAGE
+        IMAGE,
+        MARKDOWN
     }
 }

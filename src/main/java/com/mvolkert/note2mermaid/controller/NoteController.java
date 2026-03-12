@@ -249,6 +249,7 @@ public class NoteController {
             case DIAGRAM -> "Diagramm vom " + java.time.LocalDate.now();
             case TEXT -> "Text vom " + java.time.LocalDate.now();
             case IMAGE -> "Bild vom " + java.time.LocalDate.now();
+            case MARKDOWN -> "Notiz vom " + java.time.LocalDate.now();
         };
     }
 }

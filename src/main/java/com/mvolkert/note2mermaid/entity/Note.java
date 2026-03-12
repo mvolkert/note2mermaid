@@ -48,7 +48,7 @@ public class Note {
     @Column
     @Schema(
         description = "Type of content in this note",
-        allowableValues = {"TEXT", "DIAGRAM", "IMAGE"},
+        allowableValues = {"TEXT", "DIAGRAM", "IMAGE", "MARKDOWN"},
         example = "DIAGRAM"
     )
     private String contentType;
