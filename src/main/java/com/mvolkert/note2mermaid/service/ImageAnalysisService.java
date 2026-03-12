@@ -40,31 +40,39 @@ public class ImageAnalysisService {
     public ImageAnalysisResult analyzeImage(byte[] imageData, String mimeType) {
         String base64Image = Base64.getEncoder().encodeToString(imageData);
         
-        // Erst prüfen, ob es ein Diagramm ist
         String analysisPrompt = """
-            Analysiere dieses Bild und bestimme, was es enthält.
+            Transkribiere den Inhalt dieses Bildes exakt.
             
-            Wenn es ein Diagramm ist (Flowchart, Sequenzdiagramm, Klassendiagramm, etc.):
+            WICHTIGE REGELN:
+            - Keine Interpretationen oder Beschreibungen hinzufügen
+            - Nur den tatsächlichen Inhalt ausgeben
+            - Rechtschreibfehler und Grammatikfehler korrigieren
+            - Schlechte Wortwahl verbessern (z.B. umgangssprachlich → korrekt)
+            - Die ursprüngliche Struktur beibehalten
+            
+            AUSGABEFORMAT:
+            
+            Bei Diagrammen (Flowchart, Sequenzdiagramm, Mindmap, etc.):
             - Antworte mit "TYPE: DIAGRAM"
-            - Generiere danach gültigen Mermaid-Code, der das Diagramm repräsentiert
-            - Der Mermaid-Code sollte zwischen ```mermaid und ``` stehen
+            - Generiere gültigen Mermaid-Code zwischen ```mermaid und ```
+            - Behalte die Struktur und Verbindungen exakt bei
             
-            Wenn es strukturierter Text ist (mit Überschriften, Aufzählungen, Nummerierungen, Tabellen):
+            Bei strukturiertem Text (Überschriften, Listen, Tabellen):
             - Antworte mit "TYPE: MARKDOWN"
-            - Formatiere den Text als Markdown:
-              - Überschriften mit # ## ###
-              - Aufzählungen mit - oder *
-              - Nummerierte Listen mit 1. 2. 3.
-              - Fettdruck mit **text**
-              - Kursiv mit *text*
+            - Gib den korrigierten Text als Markdown aus:
+              - Überschriften: # ## ###
+              - Aufzählungen: - oder *
+              - Nummerierungen: 1. 2. 3.
+            - Keine zusätzlichen Erklärungen
             
-            Wenn es einfacher Fließtext ist (ohne Struktur):
+            Bei Fließtext (Absätze ohne Struktur):
             - Antworte mit "TYPE: TEXT"
-            - Extrahiere den gesamten lesbaren Text
+            - Gib nur den korrigierten Text aus
+            - Keine Einleitung wie "Der Text lautet:"
             
-            Wenn es ein anderes Bild ist (Foto, Grafik, etc.):
+            Bei Fotos/Grafiken ohne Text:
             - Antworte mit "TYPE: IMAGE"
-            - Beschreibe kurz den Bildinhalt
+            - Kurze sachliche Beschreibung (max. 1 Satz)
             """;
 
         UserMessage userMessage = UserMessage.from(
