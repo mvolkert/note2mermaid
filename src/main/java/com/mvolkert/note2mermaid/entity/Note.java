@@ -23,8 +23,8 @@ public class Note {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Lob
-    @Column(columnDefinition = "BLOB")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "image_data")
     private byte[] imageData;
 
     @Column
