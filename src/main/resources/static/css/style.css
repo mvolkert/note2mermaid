@@ -415,6 +415,7 @@ section h2 {
 .markdown-content {
     color: var(--text-color);
     line-height: 1.7;
+    text-align: left;
 }
 
 .markdown-content h1,
@@ -424,6 +425,7 @@ section h2 {
     margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: var(--text-color);
+    text-align: left;
 }
 
 .markdown-content h1 { font-size: 1.5rem; }
