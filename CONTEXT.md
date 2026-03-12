@@ -2,7 +2,7 @@
 
 ## Technologie-Stack
 
-- **Backend:** Spring Boot 3.4.3 (Java 21)
+- **Backend:** Spring Boot 4.0.3 (Java 17)
 - **Datenbank:** SQLite mit Liquibase Migrations
 - **Frontend:** Statisches HTML/CSS/JS + Mermaid.js
 - **Build:** Maven
@@ -17,16 +17,19 @@ note2mermaid/
 ├── src/main/java/com/mvolkert/note2mermaid/
 │   ├── Note2mermaidApplication.java
 │   ├── controller/
-│   │   ├── NoteController.java       # CRUD + /api/notes/from-image
+│   │   ├── NoteController.java       # CRUD + /api/notes/from-image (mit OpenAPI-Annotationen)
 │   │   └── HelloController.java      # Test-Endpoint
 │   ├── entity/
-│   │   └── Note.java                 # JPA Entity mit Bild-Spalten
+│   │   └── Note.java                 # JPA Entity mit Bild-Spalten (mit @Schema)
 │   ├── repository/
 │   │   └── NoteRepository.java
 │   ├── service/
 │   │   └── ImageAnalysisService.java # LangChain4j Vision-Analyse
 │   └── dto/
-│       └── ImageUploadRequest.java   # DTO für Bild-Upload
+│       └── ImageUploadRequest.java   # DTO für Bild-Upload (mit @Schema)
+├── src/test/java/com/mvolkert/note2mermaid/
+│   └── controller/
+│       └── NoteControllerTest.java   # Unit Tests mit Mockito
 ├── src/main/resources/
 │   ├── application.properties        # DB + LM Studio Config
 │   ├── db/changelog/
@@ -36,6 +39,7 @@ note2mermaid/
 │   │       └── 002-add-image-columns.yaml
 │   └── static/
 │       ├── index.html                # Startseite mit Tabs (Text/Kamera)
+│       ├── arazzo.yaml               # Arazzo Workflow-Spezifikation
 │       └── css/style.css
 └── pom.xml
 ```
@@ -53,6 +57,8 @@ note2mermaid/
 | DELETE | `/api/notes/{id}` | Notiz löschen |
 | POST | `/api/notes/from-image` | Bild analysieren und Notiz erstellen |
 | GET | `/hello` | Test-Endpoint ("hi") |
+| GET | `/swagger-ui.html` | Swagger UI (API-Dokumentation) |
+| GET | `/v3/api-docs` | OpenAPI 3.0 JSON |
 
 ---
 
@@ -133,18 +139,20 @@ private String cleanMermaidCode(String code) {
 | SQLite wirft `SQLFeatureNotSupportedException` bei BLOB | `@Lob` entfernen, `byte[]` mit `@Basic` verwenden |
 | LLM gibt escaped Mermaid-Code zurück | `cleanMermaidCode()` Methode bereinigt Escape-Sequenzen |
 | Ollama vs. LM Studio | Beides installiert, LM Studio wird verwendet (Port 1234) |
+| Spring Boot 4.0 Breaking Changes | `@MockBean` → `@MockitoBean`, Test-Module aufgeteilt |
+| @WebMvcTest nicht verfügbar | Reine Mockito Unit Tests verwenden |
 
 ---
 
 ## Git Log (letzte Commits)
 
 ```
+a35f1cd Add OpenAPI annotations and unit tests for NoteController
+1864a89 Add Arazzo Specification for API workflows
+29c1f76 Add SpringDoc OpenAPI for automatic API documentation
+e543ec1 Add ollama-installer.exe to .gitignore
+ed82d0d Update CONTEXT.md with current project state
 e947b19 Add cleanMermaidCode() to fix escape sequences from LLM response
-51bcef2 Fix SQLite BLOB handling - remove @Lob annotation
-d990a42 Update LM Studio config to use ministral-3b vision model
-233dfee Add camera-to-note feature with LangChain4j and Llama Vision
-3e02d47 Add CONTEXT.md for session continuity
-9f56702 Fix Liquibase changelog include path
 ```
 
 ---
@@ -163,10 +171,15 @@ App ist erreichbar unter: `http://localhost:8080`
 
 ## Nächste Schritte
 
+- [x] SpringDoc OpenAPI hinzufügen
+- [x] OpenAPI-Annotationen zu Controller/Entity/DTO
+- [x] Arazzo Workflow-Spezifikation erstellen
+- [x] Unit Tests für NoteController schreiben
 - [ ] App testen mit echtem Bild (Kamera -> Analyse -> Notiz)
 - [ ] Fehlerbehandlung verbessern (z.B. wenn LM Studio nicht läuft)
 - [ ] Notiz-Detail-Ansicht mit Bild-Anzeige
 - [ ] Mermaid-Diagramm Export als PNG/SVG
+- [ ] Integration Tests hinzufügen
 
 ---
 
