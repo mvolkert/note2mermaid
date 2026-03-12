@@ -40,11 +40,21 @@
             </div>
         </section>
 
-        <section class="cta">
+        <section class="create-note">
             <div class="container">
-                <h2>Jetzt starten</h2>
-                <p>Beginne mit der Erstellung deiner ersten Notiz.</p>
-                <a href="#" class="btn btn-primary">Neue Notiz erstellen</a>
+                <h2>Neue Notiz erstellen</h2>
+                <form id="noteForm" class="note-form">
+                    <div class="form-group">
+                        <label for="title">Titel</label>
+                        <input type="text" id="title" name="title" required placeholder="Titel der Notiz">
+                    </div>
+                    <div class="form-group">
+                        <label for="content">Inhalt</label>
+                        <textarea id="content" name="content" rows="6" placeholder="Inhalt der Notiz..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Notiz speichern</button>
+                </form>
+                <div id="message" class="message"></div>
             </div>
         </section>
     </main>
@@ -54,5 +64,37 @@
             <p>&copy; 2026 Note2Mermaid. Alle Rechte vorbehalten.</p>
         </div>
     </footer>
+
+    <script>
+        document.getElementById('noteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+                
+                if (response.ok) {
+                    const note = await response.json();
+                    messageDiv.textContent = `Notiz "${note.title}" wurde erfolgreich erstellt!`;
+                    messageDiv.className = 'message success';
+                    document.getElementById('noteForm').reset();
+                } else {
+                    throw new Error('Fehler beim Erstellen der Notiz');
+                }
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.className = 'message error';
+            }
+        });
+    </script>
 </body>
 </html>
