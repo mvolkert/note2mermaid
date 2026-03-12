@@ -57,6 +57,15 @@
                 <div id="message" class="message"></div>
             </div>
         </section>
+
+        <section class="notes-list">
+            <div class="container">
+                <h2>Meine Notizen</h2>
+                <div id="notesContainer" class="notes-grid">
+                    <p class="loading">Notizen werden geladen...</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -66,6 +75,67 @@
     </footer>
 
     <script>
+        // Notizen laden
+        async function loadNotes() {
+            const container = document.getElementById('notesContainer');
+            try {
+                const response = await fetch('/api/notes');
+                const notes = await response.json();
+                
+                if (notes.length === 0) {
+                    container.innerHTML = '<p class="empty-state">Noch keine Notizen vorhanden.</p>';
+                    return;
+                }
+                
+                container.innerHTML = notes.map(note => `
+                    <div class="note-card" data-id="${note.id}">
+                        <h3>${escapeHtml(note.title)}</h3>
+                        <p>${escapeHtml(note.content || '')}</p>
+                        <div class="note-meta">
+                            <span>Erstellt: ${formatDate(note.createdAt)}</span>
+                        </div>
+                        <button class="btn btn-delete" onclick="deleteNote(${note.id})">Löschen</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p class="error">Fehler beim Laden der Notizen.</p>';
+            }
+        }
+        
+        // Notiz löschen
+        async function deleteNote(id) {
+            if (!confirm('Notiz wirklich löschen?')) return;
+            
+            try {
+                const response = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadNotes();
+                }
+            } catch (error) {
+                alert('Fehler beim Löschen der Notiz');
+            }
+        }
+        
+        // Hilfsfunktionen
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Formular absenden
         document.getElementById('noteForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -87,6 +157,7 @@
                     messageDiv.textContent = `Notiz "${note.title}" wurde erfolgreich erstellt!`;
                     messageDiv.className = 'message success';
                     document.getElementById('noteForm').reset();
+                    loadNotes(); // Liste aktualisieren
                 } else {
                     throw new Error('Fehler beim Erstellen der Notiz');
                 }
@@ -95,6 +166,9 @@
                 messageDiv.className = 'message error';
             }
         });
+        
+        // Beim Laden der Seite Notizen abrufen
+        loadNotes();
     </script>
 </body>
 </html>
