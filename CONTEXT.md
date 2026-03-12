@@ -2,10 +2,11 @@
 
 ## Technologie-Stack
 
-- **Backend:** Spring Boot 4.0.3 (Java)
+- **Backend:** Spring Boot 3.4.3 (Java 21)
 - **Datenbank:** SQLite mit Liquibase Migrations
-- **Frontend:** Statisches HTML/CSS/JS
+- **Frontend:** Statisches HTML/CSS/JS + Mermaid.js
 - **Build:** Maven
+- **KI:** LangChain4j mit LM Studio (OpenAI-kompatibel)
 
 ---
 
@@ -16,17 +17,25 @@ note2mermaid/
 ├── src/main/java/com/mvolkert/note2mermaid/
 │   ├── Note2mermaidApplication.java
 │   ├── controller/
-│   │   ├── NoteController.java    # CRUD REST API für Notes
-│   │   └── HelloController.java   # Test-Endpoint
+│   │   ├── NoteController.java       # CRUD + /api/notes/from-image
+│   │   └── HelloController.java      # Test-Endpoint
 │   ├── entity/
-│   │   └── Note.java              # JPA Entity (id, title, content, createdAt, updatedAt)
-│   └── repository/
-│       └── NoteRepository.java
+│   │   └── Note.java                 # JPA Entity mit Bild-Spalten
+│   ├── repository/
+│   │   └── NoteRepository.java
+│   ├── service/
+│   │   └── ImageAnalysisService.java # LangChain4j Vision-Analyse
+│   └── dto/
+│       └── ImageUploadRequest.java   # DTO für Bild-Upload
 ├── src/main/resources/
-│   ├── application.properties
-│   ├── db/changelog/              # Liquibase Migrations
+│   ├── application.properties        # DB + LM Studio Config
+│   ├── db/changelog/
+│   │   ├── db.changelog-master.yaml
+│   │   └── changes/
+│   │       ├── 001-create-notes-table.yaml
+│   │       └── 002-add-image-columns.yaml
 │   └── static/
-│       ├── index.html             # Startseite mit Formular + Notizliste
+│       ├── index.html                # Startseite mit Tabs (Text/Kamera)
 │       └── css/style.css
 └── pom.xml
 ```
@@ -42,94 +51,127 @@ note2mermaid/
 | POST | `/api/notes` | Notiz erstellen |
 | PUT | `/api/notes/{id}` | Notiz aktualisieren |
 | DELETE | `/api/notes/{id}` | Notiz löschen |
+| POST | `/api/notes/from-image` | Bild analysieren und Notiz erstellen |
 | GET | `/hello` | Test-Endpoint ("hi") |
 
 ---
 
-## Frontend
+## LM Studio Konfiguration
 
-- Startseite mit Hero, Features-Sektion
-- Formular zum Erstellen von Notizen
-- Notizliste mit Karten-Ansicht und Löschen-Button
-- Responsive CSS Design
+- **Server URL:** `http://127.0.0.1:1234/v1`
+- **Modell:** `ministral-3b` (mit Vision-Support)
+- **Konfiguration in:** `application.properties`
 
----
-
-## Nächstes Feature: Kamera-Bild zu Notiz
-
-### Ziel
-
-Bild mit Laptop-Kamera aufnehmen → Lokal analysieren → Notiz erstellen
-
-### Entscheidungen
-
-- **Bildanalyse:** OCR für Text, Mermaid-Code generieren für Diagramme
-- **KI-Provider:** Lokales Modell (Llama Vision)
-- **Tool:** LM Studio (bereits installiert)
-- **Java-Integration:** LangChain4j
-- **Bild speichern:** Ja, als BLOB in der Datenbank
+```properties
+lmstudio.base-url=http://127.0.0.1:1234/v1
+lmstudio.model-name=ministral-3b
+```
 
 ---
 
-## Implementierungsplan
+## Note Entity
 
-### Phase 1: LM Studio Server einrichten
+```java
+@Entity
+public class Note {
+    Long id;
+    String title;
+    String content;
+    ContentType contentType;  // TEXT oder DIAGRAM
+    byte[] imageData;         // Original-Bild als BLOB (ohne @Lob!)
+    String imageType;         // z.B. "image/png"
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+}
+```
 
-- Vision-Modell in LM Studio laden (llava oder bakllava)
-- Lokalen Server starten (Port 1234)
-- Endpoint: `http://localhost:1234/v1` (OpenAI-kompatibel)
+**Wichtig:** SQLite JDBC unterstützt `@Lob` nicht! Stattdessen `@Basic(fetch = FetchType.LAZY)` verwenden.
 
-### Phase 2: Backend - LangChain4j Integration
+---
 
-- Dependencies in pom.xml:
-  - `langchain4j-core`
-  - `langchain4j-open-ai` (für LM Studio Kompatibilität)
-- `ImageAnalysisService` erstellen:
-  - Bild (Base64) empfangen
-  - LangChain4j ChatModel mit Vision aufrufen
-  - Prompt unterscheidet: Text (OCR) vs. Diagramm (Mermaid-Code)
-- `NoteController` erweitern:
-  - `POST /api/notes/from-image` Endpoint
-- Konfiguration in `application.properties`:
-  - LM Studio URL
+## ImageAnalysisService
 
-### Phase 3: Datenbank erweitern
+Der Service analysiert Bilder mit dem Vision-LLM:
 
-- Note-Entity erweitern:
-  - `imageData` (BLOB/byte[])
-  - `imageType` (String, z.B. "image/png")
-- Liquibase Migration für neue Spalten
+1. **Input:** Base64-codiertes Bild
+2. **Prompt:** Fragt das LLM ob Text oder Diagramm
+3. **Output:** 
+   - Bei Text: OCR-Ergebnis
+   - Bei Diagramm: Mermaid-Code (bereinigt von Escape-Sequenzen)
 
-### Phase 4: Frontend - Kamera-Integration
+### cleanMermaidCode()
 
-- Kamera-Button zur Startseite hinzufügen
-- WebRTC/getUserMedia für Kamera-Stream
-- Canvas-Snapshot für Foto
-- Preview + Bestätigung vor Upload
-- Base64-Upload an `/api/notes/from-image`
-- Mermaid.js Library für Diagramm-Rendering
+Das LLM gibt manchmal Escape-Sequenzen zurück (`\n`, `\"`), die bereinigt werden müssen:
+
+```java
+private String cleanMermaidCode(String code) {
+    return code
+        .replace("\\n", "\n")
+        .replace("\\\"", "\"")
+        .replace("\\\\", "\\")
+        .replaceAll("  +", " ")
+        .trim();
+}
+```
+
+---
+
+## Frontend Features
+
+- **Tabs:** Text-Eingabe oder Kamera-Aufnahme
+- **Kamera:** WebRTC/getUserMedia für Laptop-Kamera
+- **Preview:** Foto-Vorschau vor Upload
+- **Notizliste:** Karten-Ansicht mit Löschen-Button
+- **Mermaid.js:** Rendert Diagramme automatisch
+
+---
+
+## Bekannte Probleme & Lösungen
+
+| Problem | Lösung |
+|---------|--------|
+| SQLite wirft `SQLFeatureNotSupportedException` bei BLOB | `@Lob` entfernen, `byte[]` mit `@Basic` verwenden |
+| LLM gibt escaped Mermaid-Code zurück | `cleanMermaidCode()` Methode bereinigt Escape-Sequenzen |
+| Ollama vs. LM Studio | Beides installiert, LM Studio wird verwendet (Port 1234) |
 
 ---
 
 ## Git Log (letzte Commits)
 
 ```
+e947b19 Add cleanMermaidCode() to fix escape sequences from LLM response
+51bcef2 Fix SQLite BLOB handling - remove @Lob annotation
+d990a42 Update LM Studio config to use ministral-3b vision model
+233dfee Add camera-to-note feature with LangChain4j and Llama Vision
+3e02d47 Add CONTEXT.md for session continuity
 9f56702 Fix Liquibase changelog include path
-f323ecc Add notes list view with delete functionality
-c315a30 Add note creation form to homepage
-5ecd6fd Add HelloController for testing
-d725d27 Add NoteController with full CRUD REST API
-ebd3357 Add Agents.md guidelines for AI agents
-1fb4334 Add SQLite database files to .gitignore
-994f36c Add Note entity with JPA repository and Liquibase migrations
-2314f43 Add static homepage for webapp
-064ac01 Initial commit: Add Maven project structure for note2mermaid
 ```
+
+---
+
+## App starten
+
+```bash
+# LM Studio Server starten (Port 1234)
+# Dann:
+./mvnw spring-boot:run
+```
+
+App ist erreichbar unter: `http://localhost:8080`
+
+---
+
+## Nächste Schritte
+
+- [ ] App testen mit echtem Bild (Kamera -> Analyse -> Notiz)
+- [ ] Fehlerbehandlung verbessern (z.B. wenn LM Studio nicht läuft)
+- [ ] Notiz-Detail-Ansicht mit Bild-Anzeige
+- [ ] Mermaid-Diagramm Export als PNG/SVG
 
 ---
 
 ## Wiederaufsetzen
 
-Beim Fortsetzen diesen Kontext bereitstellen und sagen:
+Beim Fortsetzen einfach fragen:
 
-> "Ich möchte das Kamera-zu-Notiz Feature implementieren. LM Studio ist bereit mit [Modellname]. Starte mit Phase [1/2/3/4]."
+> "Was haben wir bisher gemacht?" oder "Continue"
