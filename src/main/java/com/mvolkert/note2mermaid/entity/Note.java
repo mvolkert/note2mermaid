@@ -1,37 +1,57 @@
 package com.mvolkert.note2mermaid.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notes")
+@Schema(description = "A note entity that can contain text, Mermaid diagrams, or image descriptions")
 public class Note {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "Unique identifier of the note", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @Column(nullable = false)
+    @Schema(description = "Title of the note", example = "Meeting Notes", requiredMode = Schema.RequiredMode.REQUIRED)
     private String title;
 
     @Column(columnDefinition = "TEXT")
+    @Schema(
+        description = "Content of the note. For DIAGRAM type, this contains Mermaid syntax code.",
+        example = "graph TD\\n    A[Start] --> B[End]"
+    )
     private String content;
 
     @Column(nullable = false)
+    @Schema(description = "Timestamp when the note was created", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
+    @Schema(description = "Timestamp when the note was last updated", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime updatedAt;
 
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "image_data")
+    @Schema(
+        description = "Original image data as byte array (Base64 encoded in JSON). Excluded from list responses for performance.",
+        accessMode = Schema.AccessMode.READ_ONLY
+    )
     private byte[] imageData;
 
     @Column
+    @Schema(description = "MIME type of the stored image", example = "image/png")
     private String imageType;
 
     @Column
-    private String contentType; // TEXT, DIAGRAM, IMAGE
+    @Schema(
+        description = "Type of content in this note",
+        allowableValues = {"TEXT", "DIAGRAM", "IMAGE"},
+        example = "DIAGRAM"
+    )
+    private String contentType;
 
     public Note() {
         this.createdAt = LocalDateTime.now();
@@ -114,4 +134,3 @@ public class Note {
         this.contentType = contentType;
     }
 }
-
