@@ -1,0 +1,334 @@
+arazzo: 1.0.1
+info:
+  title: note2mermaid API Workflows
+  summary: Workflows for creating notes from text or camera images with AI analysis
+  description: |
+    This Arazzo Description defines the workflows for the note2mermaid application.
+    The app allows users to:
+    - Create and manage notes via CRUD operations
+    - Capture images with a camera and analyze them using a Vision LLM
+    - Automatically generate Mermaid diagrams from hand-drawn sketches
+    - Perform OCR on text images
+  version: 1.0.0
+
+sourceDescriptions:
+  - name: note2mermaidApi
+    url: /v3/api-docs
+    type: openapi
+
+workflows:
+  # Workflow 1: Basic Note CRUD
+  - workflowId: createAndManageNote
+    summary: Create, update, and delete a note
+    description: |
+      This workflow demonstrates the basic CRUD operations for notes.
+      Create a note, optionally update it, then retrieve or delete it.
+    inputs:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the note
+        content:
+          type: string
+          description: The content of the note
+      required:
+        - title
+        - content
+    steps:
+      - stepId: createNote
+        description: Create a new note with title and content
+        operationId: createNote
+        requestBody:
+          contentType: application/json
+          payload:
+            title: $inputs.title
+            content: $inputs.content
+            contentType: TEXT
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          noteId: $response.body.id
+          createdNote: $response.body
+
+      - stepId: getCreatedNote
+        description: Retrieve the note we just created to verify
+        operationId: getNoteById
+        parameters:
+          - name: id
+            in: path
+            value: $steps.createNote.outputs.noteId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          retrievedNote: $response.body
+
+    outputs:
+      noteId: $steps.createNote.outputs.noteId
+      note: $steps.getCreatedNote.outputs.retrievedNote
+
+  # Workflow 2: Camera to Note (Main Feature)
+  - workflowId: captureImageAndCreateNote
+    summary: Capture image and create note with AI analysis
+    description: |
+      The main workflow of note2mermaid:
+      1. User captures an image with their camera
+      2. Image is sent to the Vision LLM for analysis
+      3. LLM determines if it's text (OCR) or a diagram (Mermaid)
+      4. A note is created with the analyzed content
+      
+      For diagrams, the content will be valid Mermaid code that can be rendered.
+    inputs:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+          description: Base64-encoded image data from camera
+        imageType:
+          type: string
+          description: MIME type of the image (e.g., image/png)
+          default: image/png
+      required:
+        - imageBase64
+    steps:
+      - stepId: analyzeAndCreateNote
+        description: Send image to AI for analysis and create note
+        operationId: createNoteFromImage
+        requestBody:
+          contentType: application/json
+          payload:
+            imageData: $inputs.imageBase64
+            imageType: $inputs.imageType
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          noteId: $response.body.id
+          contentType: $response.body.contentType
+          content: $response.body.content
+          title: $response.body.title
+
+      - stepId: verifyNote
+        description: Retrieve the created note to confirm it was saved
+        operationId: getNoteById
+        parameters:
+          - name: id
+            in: path
+            value: $steps.analyzeAndCreateNote.outputs.noteId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          fullNote: $response.body
+
+    outputs:
+      noteId: $steps.analyzeAndCreateNote.outputs.noteId
+      contentType: $steps.analyzeAndCreateNote.outputs.contentType
+      content: $steps.analyzeAndCreateNote.outputs.content
+      note: $steps.verifyNote.outputs.fullNote
+
+  # Workflow 3: List and Filter Notes
+  - workflowId: listAllNotes
+    summary: Retrieve all notes
+    description: |
+      Simple workflow to list all existing notes in the system.
+      Useful for displaying the note overview in the UI.
+    steps:
+      - stepId: getAllNotes
+        description: Fetch all notes from the API
+        operationId: getAllNotes
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          notes: $response.body
+          count: $response.body.length
+
+    outputs:
+      notes: $steps.getAllNotes.outputs.notes
+
+  # Workflow 4: Update Note Content
+  - workflowId: updateNoteContent
+    summary: Update an existing note
+    description: |
+      Workflow to update the title and/or content of an existing note.
+      First retrieves the note, then updates it with new values.
+    inputs:
+      type: object
+      properties:
+        noteId:
+          type: integer
+          format: int64
+          description: ID of the note to update
+        newTitle:
+          type: string
+          description: New title for the note
+        newContent:
+          type: string
+          description: New content for the note
+      required:
+        - noteId
+    steps:
+      - stepId: getExistingNote
+        description: Retrieve the current note data
+        operationId: getNoteById
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.noteId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          currentNote: $response.body
+
+      - stepId: updateNote
+        description: Update the note with new values
+        operationId: updateNote
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.noteId
+        requestBody:
+          contentType: application/json
+          payload:
+            id: $inputs.noteId
+            title: $inputs.newTitle
+            content: $inputs.newContent
+            contentType: $steps.getExistingNote.outputs.currentNote.contentType
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          updatedNote: $response.body
+
+    outputs:
+      note: $steps.updateNote.outputs.updatedNote
+
+  # Workflow 5: Delete Note
+  - workflowId: deleteNote
+    summary: Delete an existing note
+    description: |
+      Workflow to permanently delete a note.
+      Verifies the note exists before attempting deletion.
+    inputs:
+      type: object
+      properties:
+        noteId:
+          type: integer
+          format: int64
+          description: ID of the note to delete
+      required:
+        - noteId
+    steps:
+      - stepId: verifyNoteExists
+        description: Check if the note exists before deletion
+        operationId: getNoteById
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.noteId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          noteToDelete: $response.body
+
+      - stepId: performDelete
+        description: Delete the note
+        operationId: deleteNote
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.noteId
+        successCriteria:
+          - condition: $statusCode == 200
+
+    outputs:
+      deletedNoteId: $inputs.noteId
+      deletedNoteTitle: $steps.verifyNoteExists.outputs.noteToDelete.title
+
+  # Workflow 6: Mermaid Diagram from Sketch
+  - workflowId: sketchToMermaid
+    summary: Convert hand-drawn sketch to Mermaid diagram
+    description: |
+      Specialized workflow for converting hand-drawn diagrams to Mermaid code.
+      This is a variant of captureImageAndCreateNote that specifically expects
+      diagram content and validates the output is valid Mermaid syntax.
+      
+      Supported diagram types:
+      - Flowcharts (graph TD/LR)
+      - Sequence diagrams
+      - Class diagrams
+      - State diagrams
+      - Entity Relationship diagrams
+    inputs:
+      type: object
+      properties:
+        sketchImageBase64:
+          type: string
+          description: Base64-encoded image of the hand-drawn sketch
+      required:
+        - sketchImageBase64
+    steps:
+      - stepId: convertSketch
+        description: Send sketch to Vision LLM for Mermaid conversion
+        operationId: createNoteFromImage
+        requestBody:
+          contentType: application/json
+          payload:
+            imageData: $inputs.sketchImageBase64
+            imageType: image/png
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $[?(@.contentType == 'DIAGRAM')]
+            type: jsonpath
+        outputs:
+          noteId: $response.body.id
+          mermaidCode: $response.body.content
+        onSuccess:
+          - name: diagramCreated
+            type: end
+        onFailure:
+          - name: notADiagram
+            type: end
+            criteria:
+              - context: $response.body
+                condition: $[?(@.contentType == 'TEXT')]
+                type: jsonpath
+
+    outputs:
+      noteId: $steps.convertSketch.outputs.noteId
+      mermaidCode: $steps.convertSketch.outputs.mermaidCode
+
+components:
+  parameters:
+    noteId:
+      name: id
+      in: path
+      value: $inputs.noteId
+  
+  inputs:
+    noteContent:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        contentType:
+          type: string
+          enum: [TEXT, DIAGRAM]
+      required:
+        - title
+        - content
+
+  failureActions:
+    retryOnServerError:
+      name: retryOnServerError
+      type: retry
+      retryAfter: 2
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode >= 500
+
+    endOnNotFound:
+      name: endOnNotFound
+      type: end
+      criteria:
+        - condition: $statusCode == 404
