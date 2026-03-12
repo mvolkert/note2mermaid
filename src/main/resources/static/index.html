@@ -124,7 +124,7 @@
                         <span class="note-type-badge ${note.contentType || 'TEXT'}">${note.contentType || 'TEXT'}</span>
                         <h3>${escapeHtml(note.title)}</h3>
                         ${note.contentType === 'DIAGRAM' ? 
-                            `<div class="mermaid">${escapeHtml(note.content || '')}</div>` : 
+                            `<div class="mermaid">${cleanMermaidCode(note.content || '')}</div>` : 
                             `<p>${escapeHtml(note.content || '')}</p>`
                         }
                         <div class="note-meta">
@@ -160,6 +160,16 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        // Mermaid-Code bereinigen (Escape-Sequenzen zu echten Zeichen)
+        function cleanMermaidCode(code) {
+            if (!code) return '';
+            return code
+                .replace(/\\n/g, '\n')      // \n zu echtem Newline
+                .replace(/\\"/g, '"')        // \" zu echtem Quote
+                .replace(/\\\\/g, '\\')      // \\ zu echtem Backslash
+                .trim();
         }
         
         function formatDate(dateString) {
