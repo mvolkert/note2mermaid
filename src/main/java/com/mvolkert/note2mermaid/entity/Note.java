@@ -23,6 +23,16 @@ public class Note {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Lob
+    @Column(columnDefinition = "BLOB")
+    private byte[] imageData;
+
+    @Column
+    private String imageType;
+
+    @Column
+    private String contentType; // TEXT, DIAGRAM, IMAGE
+
     public Note() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -78,6 +88,30 @@ public class Note {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public byte[] getImageData() {
+        return imageData;
+    }
+
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
+    }
+
+    public String getImageType() {
+        return imageType;
+    }
+
+    public void setImageType(String imageType) {
+        this.imageType = imageType;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }
 

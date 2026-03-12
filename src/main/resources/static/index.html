@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note2Mermaid</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 </head>
 <body>
     <header>
@@ -43,17 +44,47 @@
         <section class="create-note">
             <div class="container">
                 <h2>Neue Notiz erstellen</h2>
-                <form id="noteForm" class="note-form">
-                    <div class="form-group">
-                        <label for="title">Titel</label>
-                        <input type="text" id="title" name="title" required placeholder="Titel der Notiz">
+                
+                <!-- Tab-Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="text">Text eingeben</button>
+                    <button class="tab-btn" data-tab="camera">Kamera verwenden</button>
+                </div>
+
+                <!-- Text Tab -->
+                <div id="text-tab" class="tab-content active">
+                    <form id="noteForm" class="note-form">
+                        <div class="form-group">
+                            <label for="title">Titel</label>
+                            <input type="text" id="title" name="title" required placeholder="Titel der Notiz">
+                        </div>
+                        <div class="form-group">
+                            <label for="content">Inhalt</label>
+                            <textarea id="content" name="content" rows="6" placeholder="Inhalt der Notiz..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Notiz speichern</button>
+                    </form>
+                </div>
+
+                <!-- Kamera Tab -->
+                <div id="camera-tab" class="tab-content">
+                    <div class="camera-container">
+                        <video id="cameraPreview" autoplay playsinline></video>
+                        <canvas id="photoCanvas" style="display: none;"></canvas>
+                        <img id="capturedImage" style="display: none;">
                     </div>
-                    <div class="form-group">
-                        <label for="content">Inhalt</label>
-                        <textarea id="content" name="content" rows="6" placeholder="Inhalt der Notiz..."></textarea>
+                    <div class="camera-controls">
+                        <button id="startCamera" class="btn btn-primary">Kamera starten</button>
+                        <button id="capturePhoto" class="btn btn-primary" style="display: none;">Foto aufnehmen</button>
+                        <button id="retakePhoto" class="btn btn-secondary" style="display: none;">Neues Foto</button>
+                        <button id="analyzePhoto" class="btn btn-primary" style="display: none;">Analysieren & Speichern</button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Notiz speichern</button>
-                </form>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="imageTitle">Titel (optional)</label>
+                        <input type="text" id="imageTitle" placeholder="Wird automatisch generiert wenn leer">
+                    </div>
+                </div>
+
                 <div id="message" class="message"></div>
             </div>
         </section>
@@ -89,14 +120,22 @@
                 
                 container.innerHTML = notes.map(note => `
                     <div class="note-card" data-id="${note.id}">
+                        ${note.imageData ? `<img src="/api/notes/${note.id}/image" class="note-image" alt="Notiz-Bild">` : ''}
+                        <span class="note-type-badge ${note.contentType || 'TEXT'}">${note.contentType || 'TEXT'}</span>
                         <h3>${escapeHtml(note.title)}</h3>
-                        <p>${escapeHtml(note.content || '')}</p>
+                        ${note.contentType === 'DIAGRAM' ? 
+                            `<div class="mermaid">${escapeHtml(note.content || '')}</div>` : 
+                            `<p>${escapeHtml(note.content || '')}</p>`
+                        }
                         <div class="note-meta">
                             <span>Erstellt: ${formatDate(note.createdAt)}</span>
                         </div>
                         <button class="btn btn-delete" onclick="deleteNote(${note.id})">Löschen</button>
                     </div>
                 `).join('');
+                
+                // Mermaid-Diagramme rendern
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
             } catch (error) {
                 container.innerHTML = '<p class="error">Fehler beim Laden der Notizen.</p>';
             }
@@ -169,6 +208,122 @@
         
         // Beim Laden der Seite Notizen abrufen
         loadNotes();
+        
+        // Mermaid initialisieren
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+        // Tab-Navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Kamera-Funktionalität
+        let stream = null;
+        const video = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('photoCanvas');
+        const capturedImage = document.getElementById('capturedImage');
+        const startCameraBtn = document.getElementById('startCamera');
+        const capturePhotoBtn = document.getElementById('capturePhoto');
+        const retakePhotoBtn = document.getElementById('retakePhoto');
+        const analyzePhotoBtn = document.getElementById('analyzePhoto');
+
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+                });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                startCameraBtn.style.display = 'none';
+                capturePhotoBtn.style.display = 'inline-block';
+            } catch (error) {
+                alert('Kamera konnte nicht gestartet werden: ' + error.message);
+            }
+        });
+
+        capturePhotoBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            capturedImage.src = canvas.toDataURL('image/png');
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
+            
+            // Stream stoppen
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            capturePhotoBtn.style.display = 'none';
+            retakePhotoBtn.style.display = 'inline-block';
+            analyzePhotoBtn.style.display = 'inline-block';
+        });
+
+        retakePhotoBtn.addEventListener('click', async () => {
+            capturedImage.style.display = 'none';
+            retakePhotoBtn.style.display = 'none';
+            analyzePhotoBtn.style.display = 'none';
+            
+            // Kamera neu starten
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+            });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            capturePhotoBtn.style.display = 'inline-block';
+        });
+
+        analyzePhotoBtn.addEventListener('click', async () => {
+            const messageDiv = document.getElementById('message');
+            const imageTitle = document.getElementById('imageTitle').value;
+            
+            // Base64 Daten ohne Prefix extrahieren
+            const base64Data = capturedImage.src.split(',')[1];
+            
+            messageDiv.textContent = 'Bild wird analysiert...';
+            messageDiv.className = 'message info';
+            analyzePhotoBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/notes/from-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imageData: base64Data,
+                        mimeType: 'image/png',
+                        title: imageTitle || null
+                    })
+                });
+                
+                if (response.ok) {
+                    const note = await response.json();
+                    messageDiv.textContent = `Notiz "${note.title}" wurde erstellt! (Typ: ${note.contentType})`;
+                    messageDiv.className = 'message success';
+                    
+                    // Reset
+                    capturedImage.style.display = 'none';
+                    retakePhotoBtn.style.display = 'none';
+                    analyzePhotoBtn.style.display = 'none';
+                    startCameraBtn.style.display = 'inline-block';
+                    document.getElementById('imageTitle').value = '';
+                    
+                    loadNotes();
+                } else {
+                    throw new Error('Fehler bei der Analyse');
+                }
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.className = 'message error';
+            } finally {
+                analyzePhotoBtn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>

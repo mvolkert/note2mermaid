@@ -1,4 +1,6 @@
 databaseChangeLog:
   - include:
       file: classpath:db/changelog/changes/001-create-notes-table.yaml
+  - include:
+      file: classpath:db/changelog/changes/002-add-image-columns.yaml
 

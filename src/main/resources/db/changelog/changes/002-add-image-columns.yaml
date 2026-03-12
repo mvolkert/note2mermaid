@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-image-columns
+      author: note2mermaid
+      changes:
+        - addColumn:
+            tableName: notes
+            columns:
+              - column:
+                  name: image_data
+                  type: BLOB
+              - column:
+                  name: image_type
+                  type: VARCHAR(100)
+              - column:
+                  name: content_type
+                  type: VARCHAR(50)
