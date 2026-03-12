@@ -76,12 +76,16 @@ public class ImageAnalysisService {
             // Mermaid-Code extrahieren
             int start = response.indexOf("```mermaid");
             int end = response.indexOf("```", start + 10);
+            String mermaidCode;
             if (start != -1 && end != -1) {
-                result.setContent(response.substring(start + 10, end).trim());
+                mermaidCode = response.substring(start + 10, end).trim();
             } else {
                 // Falls kein Code-Block, alles nach TYPE: DIAGRAM nehmen
-                result.setContent(response.substring(response.indexOf("TYPE: DIAGRAM") + 13).trim());
+                mermaidCode = response.substring(response.indexOf("TYPE: DIAGRAM") + 13).trim();
             }
+            // Escape-Sequenzen bereinigen
+            mermaidCode = cleanMermaidCode(mermaidCode);
+            result.setContent(mermaidCode);
         } else if (response.contains("TYPE: TEXT")) {
             result.setType(ContentType.TEXT);
             result.setContent(response.substring(response.indexOf("TYPE: TEXT") + 10).trim());
@@ -91,6 +95,23 @@ public class ImageAnalysisService {
         }
         
         return result;
+    }
+
+    /**
+     * Bereinigt Mermaid-Code von Escape-Sequenzen und formatiert ihn korrekt.
+     */
+    private String cleanMermaidCode(String code) {
+        return code
+                // Escaped newlines zu echten Zeilenumbrüchen
+                .replace("\\n", "\n")
+                // Escaped Quotes zu normalen Quotes
+                .replace("\\\"", "\"")
+                // Escaped Backslashes
+                .replace("\\\\", "\\")
+                // Doppelte Leerzeichen entfernen
+                .replaceAll("  +", " ")
+                // Leere Zeilen am Anfang/Ende entfernen
+                .trim();
     }
 
     public static class ImageAnalysisResult {
