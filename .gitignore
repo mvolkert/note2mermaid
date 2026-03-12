@@ -35,3 +35,4 @@ build/
 ### Database ###
 *.sqlite
 *.db
+ollama-installer.exe
