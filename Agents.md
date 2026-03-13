@@ -51,7 +51,8 @@ Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 - Use correct HTTP status codes (201 for Create, 204 for Delete)
 
 ### Git
-- Commits after each completed change
+- Only commit when user says "finalize" or "commit"
+- If user changes topic and there are uncommitted changes, ask: "Do you want to finalize first?"
 - English commit messages
 - Conventional Commit format recommended
 
