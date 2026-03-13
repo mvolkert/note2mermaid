@@ -1,37 +1,37 @@
-# ADR-006: Arazzo Specification für Workflows
+# ADR-006: Arazzo Specification for Workflows
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Dokumentation von API-Workflows und typischen Nutzungssequenzen.
+Documentation of API workflows and typical usage sequences.
 
-## Entscheidung
+## Decision
 
 Arazzo 1.0.1 Specification in `src/main/resources/static/arazzo.yaml`.
 
-## Begründung
+## Rationale
 
-- Ergänzt OpenAPI um Workflow-Beschreibungen
-- Dokumentiert typische Nutzungssequenzen
-- Maschinenlesbar für potenzielle Codegen
-- Zeigt wie Endpoints zusammenspielen
+- Complements OpenAPI with workflow descriptions
+- Documents typical usage sequences
+- Machine-readable for potential code generation
+- Shows how endpoints work together
 
-## Konsequenzen
+## Consequences
 
-### Definierte Workflows
+### Defined Workflows
 
-| Workflow ID | Beschreibung |
-|-------------|--------------|
-| `createAndManageNote` | CRUD-Operationen |
-| `captureImageAndCreateNote` | Kamera → AI → Notiz |
-| `listAllNotes` | Alle Notizen abrufen |
-| `updateNoteContent` | Notiz aktualisieren |
-| `deleteNote` | Notiz löschen |
-| `sketchToMermaid` | Skizze zu Mermaid-Diagramm |
+| Workflow ID | Description |
+|-------------|-------------|
+| `createAndManageNote` | CRUD operations |
+| `captureImageAndCreateNote` | Camera → AI → Note |
+| `listAllNotes` | Retrieve all notes |
+| `updateNoteContent` | Update a note |
+| `deleteNote` | Delete a note |
+| `sketchToMermaid` | Sketch to Mermaid diagram |
 
-### Datei-Struktur
+### File Structure
 
 ```yaml
 arazzo: 1.0.1
@@ -53,9 +53,9 @@ workflows:
         # ...
 ```
 
-### operationId Konvention
+### operationId Convention
 
-Die `operationId` muss dem Java-Methodennamen entsprechen:
+The `operationId` must match the Java method name:
 
 - `getAllNotes`
 - `getNoteById`
@@ -64,7 +64,7 @@ Die `operationId` muss dem Java-Methodennamen entsprechen:
 - `deleteNote`
 - `createNoteFromImage`
 
-### Siehe auch
+### See Also
 
-- Skill: `update-api-docs` für automatische Aktualisierung
-- ADR-005 für OpenAPI-Dokumentation
+- Skill: `update-api-docs` for automatic updates
+- ADR-005 for OpenAPI documentation

@@ -1,61 +1,61 @@
-# ADR-005: SpringDoc OpenAPI für API-Dokumentation
+# ADR-005: SpringDoc OpenAPI for API Documentation
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Automatische API-Dokumentation für REST-Endpoints.
+Automatic API documentation for REST endpoints.
 
-## Entscheidung
+## Decision
 
-SpringDoc OpenAPI 3 mit Swagger UI.
+SpringDoc OpenAPI 3 with Swagger UI.
 
-## Begründung
+## Rationale
 
-- Automatische Generierung aus Controller-Annotationen
-- Interaktive Swagger UI zum Testen
-- Standard-konform (OpenAPI 3.0)
-- Keine manuelle Sync zwischen Code und Docs
+- Automatic generation from controller annotations
+- Interactive Swagger UI for testing
+- Standard-compliant (OpenAPI 3.0)
+- No manual sync between code and docs
 
-## Konsequenzen
+## Consequences
 
 ### Endpoints
 
-| URL | Beschreibung |
-|-----|--------------|
-| `/swagger-ui.html` | Interaktive UI |
+| URL | Description |
+|-----|-------------|
+| `/swagger-ui.html` | Interactive UI |
 | `/v3/api-docs` | OpenAPI JSON |
 | `/v3/api-docs.yaml` | OpenAPI YAML |
 
-### Annotationen
+### Annotations
 
-**Controller-Ebene:**
+**Controller Level:**
 ```java
 @Tag(name = "Notes", description = "API for managing notes")
 ```
 
-**Methoden-Ebene:**
+**Method Level:**
 ```java
 @Operation(
-    summary = "Kurze Beschreibung",
-    description = "Ausführliche Beschreibung"
+    summary = "Short description",
+    description = "Detailed description"
 )
 @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Erfolg"),
-    @ApiResponse(responseCode = "404", description = "Nicht gefunden")
+    @ApiResponse(responseCode = "200", description = "Success"),
+    @ApiResponse(responseCode = "404", description = "Not found")
 })
 ```
 
-**Parameter:**
+**Parameters:**
 ```java
 @Parameter(description = "Note ID", required = true, example = "1")
 @PathVariable Long id
 ```
 
-**Entity/DTO-Felder:**
+**Entity/DTO Fields:**
 ```java
-@Schema(description = "Titel der Notiz", example = "Meine Notiz")
+@Schema(description = "Title of the note", example = "My Note")
 private String title;
 ```
 
@@ -69,7 +69,7 @@ private String title;
 </dependency>
 ```
 
-### Siehe auch
+### See Also
 
-- Skill: `update-api-docs` für automatische Aktualisierung
-- ADR-006 für Arazzo Workflow-Dokumentation
+- Skill: `update-api-docs` for automatic updates
+- ADR-006 for Arazzo workflow documentation

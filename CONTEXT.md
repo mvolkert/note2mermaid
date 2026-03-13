@@ -1,72 +1,72 @@
-# Projekt-Kontext: note2mermaid
+# Project Context: note2mermaid
 
-## Technologie-Stack
+## Technology Stack
 
 - **Backend:** Spring Boot 4.0.3 (Java 17)
-- **Datenbank:** SQLite mit Liquibase Migrations
-- **Frontend:** Statisches HTML/CSS/JS + Mermaid.js
+- **Database:** SQLite with Liquibase Migrations
+- **Frontend:** Static HTML/CSS/JS + Mermaid.js
 - **Build:** Maven
-- **KI:** LangChain4j mit LM Studio (OpenAI-kompatibel)
+- **AI:** LangChain4j with LM Studio (OpenAI-compatible)
 
 ---
 
-## Repository-Struktur
+## Repository Structure
 
 ```
 note2mermaid/
 ├── src/main/java/com/mvolkert/note2mermaid/
 │   ├── Note2mermaidApplication.java
 │   ├── controller/
-│   │   ├── NoteController.java       # CRUD + /api/notes/from-image (mit OpenAPI-Annotationen)
-│   │   └── HelloController.java      # Test-Endpoint
+│   │   ├── NoteController.java       # CRUD + /api/notes/from-image (with OpenAPI annotations)
+│   │   └── HelloController.java      # Test endpoint
 │   ├── entity/
-│   │   └── Note.java                 # JPA Entity mit Bild-Spalten (mit @Schema)
+│   │   └── Note.java                 # JPA Entity with image columns (with @Schema)
 │   ├── repository/
 │   │   └── NoteRepository.java
 │   ├── service/
-│   │   └── ImageAnalysisService.java # LangChain4j Vision-Analyse
+│   │   └── ImageAnalysisService.java # LangChain4j Vision analysis
 │   └── dto/
-│       └── ImageUploadRequest.java   # DTO für Bild-Upload (mit @Schema)
+│       └── ImageUploadRequest.java   # DTO for image upload (with @Schema)
 ├── src/test/java/com/mvolkert/note2mermaid/
 │   └── controller/
-│       └── NoteControllerTest.java   # Unit Tests mit Mockito
+│       └── NoteControllerTest.java   # Unit tests with Mockito
 ├── src/main/resources/
-│   ├── application.properties        # DB + LM Studio Config
+│   ├── application.properties        # DB + LM Studio config
 │   ├── db/changelog/
 │   │   ├── db.changelog-master.yaml
 │   │   └── changes/
 │   │       ├── 001-create-notes-table.yaml
 │   │       └── 002-add-image-columns.yaml
 │   └── static/
-│       ├── index.html                # Startseite mit Tabs (Text/Kamera)
-│       ├── arazzo.yaml               # Arazzo Workflow-Spezifikation
+│       ├── index.html                # Start page with tabs (Text/Camera)
+│       ├── arazzo.yaml               # Arazzo workflow specification
 │       └── css/style.css
 └── pom.xml
 ```
 
 ---
 
-## Bestehende Endpoints
+## Existing Endpoints
 
-| Methode | URL | Beschreibung |
-|---------|-----|--------------|
-| GET | `/api/notes` | Alle Notizen abrufen |
-| GET | `/api/notes/{id}` | Einzelne Notiz |
-| POST | `/api/notes` | Notiz erstellen |
-| PUT | `/api/notes/{id}` | Notiz aktualisieren |
-| DELETE | `/api/notes/{id}` | Notiz löschen |
-| POST | `/api/notes/from-image` | Bild analysieren und Notiz erstellen |
-| GET | `/hello` | Test-Endpoint ("hi") |
-| GET | `/swagger-ui.html` | Swagger UI (API-Dokumentation) |
+| Method | URL | Description |
+|--------|-----|-------------|
+| GET | `/api/notes` | Get all notes |
+| GET | `/api/notes/{id}` | Get single note |
+| POST | `/api/notes` | Create note |
+| PUT | `/api/notes/{id}` | Update note |
+| DELETE | `/api/notes/{id}` | Delete note |
+| POST | `/api/notes/from-image` | Analyze image and create note |
+| GET | `/hello` | Test endpoint ("hi") |
+| GET | `/swagger-ui.html` | Swagger UI (API documentation) |
 | GET | `/v3/api-docs` | OpenAPI 3.0 JSON |
 
 ---
 
-## LM Studio Konfiguration
+## LM Studio Configuration
 
 - **Server URL:** `http://127.0.0.1:1234/v1`
-- **Modell:** `ministral-3b` (mit Vision-Support)
-- **Konfiguration in:** `application.properties`
+- **Model:** `ministral-3b` (with Vision support)
+- **Configuration in:** `application.properties`
 
 ```properties
 lmstudio.base-url=http://127.0.0.1:1234/v1
@@ -83,31 +83,31 @@ public class Note {
     Long id;
     String title;
     String content;
-    ContentType contentType;  // TEXT oder DIAGRAM
-    byte[] imageData;         // Original-Bild als BLOB (ohne @Lob!)
-    String imageType;         // z.B. "image/png"
+    ContentType contentType;  // TEXT or DIAGRAM
+    byte[] imageData;         // Original image as BLOB (without @Lob!)
+    String imageType;         // e.g., "image/png"
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }
 ```
 
-**Wichtig:** SQLite JDBC unterstützt `@Lob` nicht! Stattdessen `@Basic(fetch = FetchType.LAZY)` verwenden.
+**Important:** SQLite JDBC does not support `@Lob`! Use `@Basic(fetch = FetchType.LAZY)` instead.
 
 ---
 
 ## ImageAnalysisService
 
-Der Service analysiert Bilder mit dem Vision-LLM:
+The service analyzes images with the Vision LLM:
 
-1. **Input:** Base64-codiertes Bild
-2. **Prompt:** Fragt das LLM ob Text oder Diagramm
+1. **Input:** Base64-encoded image
+2. **Prompt:** Asks the LLM if text or diagram
 3. **Output:** 
-   - Bei Text: OCR-Ergebnis
-   - Bei Diagramm: Mermaid-Code (bereinigt von Escape-Sequenzen)
+   - For text: OCR result
+   - For diagram: Mermaid code (cleaned from escape sequences)
 
 ### cleanMermaidCode()
 
-Das LLM gibt manchmal Escape-Sequenzen zurück (`\n`, `\"`), die bereinigt werden müssen:
+The LLM sometimes returns escape sequences (`\n`, `\"`), which must be cleaned:
 
 ```java
 private String cleanMermaidCode(String code) {
@@ -124,27 +124,27 @@ private String cleanMermaidCode(String code) {
 
 ## Frontend Features
 
-- **Tabs:** Text-Eingabe oder Kamera-Aufnahme
-- **Kamera:** WebRTC/getUserMedia für Laptop-Kamera
-- **Preview:** Foto-Vorschau vor Upload
-- **Notizliste:** Karten-Ansicht mit Löschen-Button
-- **Mermaid.js:** Rendert Diagramme automatisch
+- **Tabs:** Text input or camera capture
+- **Camera:** WebRTC/getUserMedia for laptop camera
+- **Preview:** Photo preview before upload
+- **Note List:** Card view with delete button
+- **Mermaid.js:** Renders diagrams automatically
 
 ---
 
-## Bekannte Probleme & Lösungen
+## Known Issues & Solutions
 
-| Problem | Lösung |
-|---------|--------|
-| SQLite wirft `SQLFeatureNotSupportedException` bei BLOB | `@Lob` entfernen, `byte[]` mit `@Basic` verwenden |
-| LLM gibt escaped Mermaid-Code zurück | `cleanMermaidCode()` Methode bereinigt Escape-Sequenzen |
-| Ollama vs. LM Studio | Beides installiert, LM Studio wird verwendet (Port 1234) |
-| Spring Boot 4.0 Breaking Changes | `@MockBean` → `@MockitoBean`, Test-Module aufgeteilt |
-| @WebMvcTest nicht verfügbar | Reine Mockito Unit Tests verwenden |
+| Problem | Solution |
+|---------|----------|
+| SQLite throws `SQLFeatureNotSupportedException` for BLOB | Remove `@Lob`, use `byte[]` with `@Basic` |
+| LLM returns escaped Mermaid code | `cleanMermaidCode()` method cleans escape sequences |
+| Ollama vs. LM Studio | Both installed, LM Studio is used (Port 1234) |
+| Spring Boot 4.0 Breaking Changes | `@MockBean` → `@MockitoBean`, test modules split |
+| @WebMvcTest not available | Use pure Mockito unit tests |
 
 ---
 
-## Git Log (letzte Commits)
+## Git Log (recent commits)
 
 ```
 a35f1cd Add OpenAPI annotations and unit tests for NoteController
@@ -157,34 +157,34 @@ e947b19 Add cleanMermaidCode() to fix escape sequences from LLM response
 
 ---
 
-## App starten
+## Starting the App
 
 ```bash
-# LM Studio Server starten (Port 1234)
-# Dann:
+# Start LM Studio Server (Port 1234)
+# Then:
 ./mvnw spring-boot:run
 ```
 
-App ist erreichbar unter: `http://localhost:8080`
+App is available at: `http://localhost:8080`
 
 ---
 
-## Nächste Schritte
+## Next Steps
 
-- [x] SpringDoc OpenAPI hinzufügen
-- [x] OpenAPI-Annotationen zu Controller/Entity/DTO
-- [x] Arazzo Workflow-Spezifikation erstellen
-- [x] Unit Tests für NoteController schreiben
-- [ ] App testen mit echtem Bild (Kamera -> Analyse -> Notiz)
-- [ ] Fehlerbehandlung verbessern (z.B. wenn LM Studio nicht läuft)
-- [ ] Notiz-Detail-Ansicht mit Bild-Anzeige
-- [ ] Mermaid-Diagramm Export als PNG/SVG
-- [ ] Integration Tests hinzufügen
+- [x] Add SpringDoc OpenAPI
+- [x] Add OpenAPI annotations to Controller/Entity/DTO
+- [x] Create Arazzo workflow specification
+- [x] Write unit tests for NoteController
+- [ ] Test app with real image (Camera -> Analysis -> Note)
+- [ ] Improve error handling (e.g., when LM Studio is not running)
+- [ ] Note detail view with image display
+- [ ] Mermaid diagram export as PNG/SVG
+- [ ] Add integration tests
 
 ---
 
-## Wiederaufsetzen
+## Resuming Work
 
-Beim Fortsetzen einfach fragen:
+When continuing, simply ask:
 
-> "Was haben wir bisher gemacht?" oder "Continue"
+> "What have we done so far?" or "Continue"

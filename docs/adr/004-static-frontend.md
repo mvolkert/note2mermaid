@@ -1,40 +1,40 @@
-# ADR-004: Statisches Frontend ohne Framework
+# ADR-004: Static Frontend without Framework
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Frontend-Technologie für die Webapp wählen.
+Choosing frontend technology for the webapp.
 
-## Entscheidung
+## Decision
 
-Vanilla HTML/CSS/JavaScript mit Mermaid.js für Diagramm-Rendering.
+Vanilla HTML/CSS/JavaScript with Mermaid.js for diagram rendering.
 
-## Begründung
+## Rationale
 
-- Einfachheit und schnelle Entwicklung
-- Keine Build-Tools oder Node.js nötig
-- Mermaid.js für Diagramm-Rendering direkt im Browser
-- Kein Framework-Overhead für eine einfache UI
+- Simplicity and fast development
+- No build tools or Node.js required
+- Mermaid.js for diagram rendering directly in browser
+- No framework overhead for a simple UI
 
-## Konsequenzen
+## Consequences
 
-### Projektstruktur
+### Project Structure
 
 ```
 src/main/resources/static/
-├── index.html          # Startseite mit Tabs
+├── index.html          # Start page with tabs
 ├── css/
 │   └── style.css       # Styling
-└── js/                 # (optional) JavaScript Module
+└── js/                 # (optional) JavaScript modules
 ```
 
-### Kein State-Management
+### No State Management
 
-- Manuelle DOM-Manipulation
-- Fetch API für Backend-Kommunikation
-- Einfache Event-Handler
+- Manual DOM manipulation
+- Fetch API for backend communication
+- Simple event handlers
 
 ### Mermaid.js Integration
 
@@ -45,7 +45,7 @@ src/main/resources/static/
 
 ### Features
 
-- **Tabs:** Text-Eingabe oder Kamera-Aufnahme
-- **Kamera:** WebRTC/getUserMedia für Laptop-Kamera
-- **Preview:** Foto-Vorschau vor Upload
-- **Notizliste:** Karten-Ansicht mit Löschen-Button
+- **Tabs:** Text input or camera capture
+- **Camera:** WebRTC/getUserMedia for laptop camera
+- **Preview:** Photo preview before upload
+- **Note List:** Card view with delete button

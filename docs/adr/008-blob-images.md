@@ -1,26 +1,26 @@
-# ADR-008: Bild-Speicherung als BLOB in SQLite
+# ADR-008: Image Storage as BLOB in SQLite
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Speicherung von Kamerabildern (Fotos für OCR/Diagramm-Analyse).
+Storage of camera images (photos for OCR/diagram analysis).
 
-## Entscheidung
+## Decision
 
-Bilder als `byte[]` direkt in der SQLite-Datenbank speichern.
+Store images as `byte[]` directly in the SQLite database.
 
-## Begründung
+## Rationale
 
-- Einfaches Backup (alles in einer Datei)
-- Keine Dateisystem-Verwaltung nötig
-- Transaktionale Konsistenz mit Notiz-Daten
-- Keine verwaisten Dateien bei Löschung
+- Simple backup (everything in one file)
+- No filesystem management required
+- Transactional consistency with note data
+- No orphaned files on deletion
 
-## Konsequenzen
+## Consequences
 
-### Entity-Mapping
+### Entity Mapping
 
 ```java
 @Entity
@@ -31,17 +31,17 @@ public class Note {
     private byte[] imageData;
     
     @Column(name = "image_type")
-    private String imageType; // z.B. "image/png"
+    private String imageType; // e.g., "image/png"
 }
 ```
 
-**Wichtig:** `@Lob` nicht verwenden! SQLite JDBC unterstützt es nicht.
+**Important:** Do not use `@Lob`! SQLite JDBC does not support it.
 
-### Lazy-Loading
+### Lazy Loading
 
-- Bilder werden nur bei explizitem Zugriff geladen
-- Separate Endpoint für Bild-Abruf: `GET /api/notes/{id}/image`
-- Liste der Notizen lädt keine Bilddaten
+- Images are only loaded on explicit access
+- Separate endpoint for image retrieval: `GET /api/notes/{id}/image`
+- Note list does not load image data
 
 ### Liquibase Migration
 
@@ -60,8 +60,8 @@ public class Note {
                 type: VARCHAR(50)
 ```
 
-### Limitierungen
+### Limitations
 
-- Datenbankgröße wächst mit Bildern
-- Für sehr große Bilder (>10MB) evtl. Dateisystem besser
-- Keine direkte URL für Bilder (muss über API geladen werden)
+- Database size grows with images
+- For very large images (>10MB) filesystem may be better
+- No direct URL for images (must be loaded via API)

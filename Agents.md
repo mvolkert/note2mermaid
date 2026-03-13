@@ -2,51 +2,51 @@
 
 ## Console/Terminal
 
-Für alle KI-Agenten gilt: **Immer Git Bash als Console verwenden.**
+For all AI agents: **Always use Git Bash as console.**
 
-Dies stellt sicher, dass Unix-kompatible Befehle konsistent funktionieren und plattformübergreifende Kompatibilität gewährleistet ist.
+This ensures that Unix-compatible commands work consistently and cross-platform compatibility is guaranteed.
 
 ---
 
-## Architekturentscheidungen (ADRs)
+## Architecture Decisions (ADRs)
 
-Vollständige ADRs befinden sich in [`docs/adr/`](docs/adr/README.md).
+Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 
-| ADR | Entscheidung | Wichtigste Konsequenz |
-|-----|--------------|----------------------|
+| ADR | Decision | Key Consequence |
+|-----|----------|-----------------|
 | [001](docs/adr/001-spring-boot.md) | Spring Boot 4.0 + Java 17 | `@MockBean` → `@MockitoBean` |
-| [002](docs/adr/002-sqlite.md) | SQLite + Liquibase | `@Lob` nicht verwenden |
-| [003](docs/adr/003-langchain4j-lmstudio.md) | LangChain4j + LM Studio | Port 1234, Vision-Modell laden |
-| [004](docs/adr/004-static-frontend.md) | Vanilla HTML/JS + Mermaid.js | Keine Build-Tools |
+| [002](docs/adr/002-sqlite.md) | SQLite + Liquibase | Do not use `@Lob` |
+| [003](docs/adr/003-langchain4j-lmstudio.md) | LangChain4j + LM Studio | Port 1234, load Vision model |
+| [004](docs/adr/004-static-frontend.md) | Vanilla HTML/JS + Mermaid.js | No build tools |
 | [005](docs/adr/005-springdoc-openapi.md) | SpringDoc OpenAPI | `/swagger-ui.html` |
 | [006](docs/adr/006-arazzo-workflows.md) | Arazzo Workflows | `static/arazzo.yaml` |
-| [007](docs/adr/007-mockito-tests.md) | Pure Mockito Tests | Kein `@WebMvcTest` |
-| [008](docs/adr/008-blob-images.md) | Bilder als BLOB | Lazy-Loading verwenden |
+| [007](docs/adr/007-mockito-tests.md) | Pure Mockito Tests | No `@WebMvcTest` |
+| [008](docs/adr/008-blob-images.md) | Images as BLOB | Use lazy loading |
 
 ---
 
-## Coding-Konventionen
+## Coding Conventions
 
 ### Java
 - Package: `com.mvolkert.note2mermaid`
-- Konstruktor-Injection statt `@Autowired`
-- Records für DTOs wo möglich
-- Deutsche Kommentare erlaubt
+- Constructor injection instead of `@Autowired`
+- Records for DTOs where possible
+- German comments allowed
 
 ### REST API
-- Base-Path: `/api/notes`
-- ResponseEntity für alle Endpoints
-- HTTP Status Codes korrekt verwenden (201 für Create, 204 für Delete)
+- Base path: `/api/notes`
+- ResponseEntity for all endpoints
+- Use correct HTTP status codes (201 for Create, 204 for Delete)
 
 ### Git
-- Commits nach jeder abgeschlossenen Änderung
-- Englische Commit-Messages
-- Conventional Commit Format empfohlen
+- Commits after each completed change
+- English commit messages
+- Conventional Commit format recommended
 
 ---
 
 ## Skills
 
-Dieser Ordner enthält Skills für automatisierte Aufgaben:
+This folder contains skills for automated tasks:
 
-- **update-api-docs**: Aktualisiert OpenAPI-Annotationen und Arazzo-Workflows bei API-Änderungen
+- **update-api-docs**: Updates OpenAPI annotations and Arazzo workflows when API changes

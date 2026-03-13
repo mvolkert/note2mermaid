@@ -1,40 +1,40 @@
-# ADR-002: SQLite als Datenbank
+# ADR-002: SQLite as Database
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Wahl der Datenbank für eine lokale Desktop-Anwendung mit Single-User-Betrieb.
+Choosing a database for a local desktop application with single-user operation.
 
-## Entscheidung
+## Decision
 
-SQLite mit Hibernate/JPA und Liquibase für Schema-Migrationen.
+SQLite with Hibernate/JPA and Liquibase for schema migrations.
 
-## Begründung
+## Rationale
 
-- Keine separate Datenbankinstallation nötig
-- Datei-basiert, einfach zu sichern und zu transportieren
-- Ausreichend für Single-User-Anwendung
-- Zero-Configuration
+- No separate database installation required
+- File-based, easy to backup and transport
+- Sufficient for single-user application
+- Zero configuration
 
-## Konsequenzen
+## Consequences
 
-### SQLite JDBC Einschränkungen
+### SQLite JDBC Limitations
 
-**`@Lob` funktioniert nicht:**
+**`@Lob` does not work:**
 ```java
-// FALSCH - wirft SQLFeatureNotSupportedException
+// WRONG - throws SQLFeatureNotSupportedException
 @Lob
 private byte[] imageData;
 
-// RICHTIG
+// CORRECT
 @Basic(fetch = FetchType.LAZY)
 @Column(name = "image_data")
 private byte[] imageData;
 ```
 
-### Konfiguration
+### Configuration
 
 ```properties
 spring.datasource.url=jdbc:sqlite:note2mermaid.db
@@ -42,9 +42,9 @@ spring.datasource.driver-class-name=org.sqlite.JDBC
 spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect
 ```
 
-### Liquibase Migrationen
+### Liquibase Migrations
 
-Pfad: `src/main/resources/db/changelog/`
+Path: `src/main/resources/db/changelog/`
 
 ```yaml
 # db.changelog-master.yaml

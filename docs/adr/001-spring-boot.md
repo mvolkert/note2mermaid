@@ -1,34 +1,34 @@
-# ADR-001: Spring Boot 4.0 mit Java 17
+# ADR-001: Spring Boot 4.0 with Java 17
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Wahl des Backend-Frameworks und der Java-Version für eine lokale Desktop-Webapp.
+Choosing the backend framework and Java version for a local desktop webapp.
 
-## Entscheidung
+## Decision
 
-Spring Boot 4.0.3 mit Java 17 (LTS).
+Spring Boot 4.0.3 with Java 17 (LTS).
 
-## Begründung
+## Rationale
 
-- Spring Boot 4.0 bietet neueste Features und Sicherheitsupdates
-- Java 17 ist LTS mit guter Balance zwischen neuen Features und Stabilität
-- Große Community und gute Dokumentation
+- Spring Boot 4.0 offers the latest features and security updates
+- Java 17 is LTS with a good balance between new features and stability
+- Large community and good documentation
 
-## Konsequenzen
+## Consequences
 
 ### Breaking Changes in Spring Boot 4.0
 
-**Test-Annotationen:**
+**Test Annotations:**
 - `@MockBean` → `@MockitoBean`
-- Neues Package: `org.springframework.test.context.bean.override.mockito`
+- New package: `org.springframework.test.context.bean.override.mockito`
 
-**Test-Module aufgeteilt:**
-- `@WebMvcTest` liegt in `spring-boot-webmvc-test-autoconfigure`
-- `TestRestTemplate` in separatem Modul
-- Nicht alle Artifacts sind verfügbar → Pure Mockito Tests verwenden (siehe ADR-007)
+**Test Modules Split:**
+- `@WebMvcTest` is in `spring-boot-webmvc-test-autoconfigure`
+- `TestRestTemplate` in separate module
+- Not all artifacts are available → Use pure Mockito tests (see ADR-007)
 
 ### Dependencies
 

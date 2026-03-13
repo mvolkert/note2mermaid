@@ -1,26 +1,26 @@
-# ADR-007: Unit Tests mit reinem Mockito
+# ADR-007: Unit Tests with Pure Mockito
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Test-Strategie für Spring Boot 4.0 wählen.
+Choosing a test strategy for Spring Boot 4.0.
 
-## Entscheidung
+## Decision
 
-Reine Mockito Unit Tests statt `@WebMvcTest` oder `@SpringBootTest`.
+Pure Mockito unit tests instead of `@WebMvcTest` or `@SpringBootTest`.
 
-## Begründung
+## Rationale
 
-- Spring Boot 4.0 hat Test-Module stark aufgeteilt
-- `@WebMvcTest` erfordert zusätzliche Dependencies die nicht alle verfügbar sind
-- Mockito Unit Tests sind schneller und Spring-unabhängig
-- Einfacheres Setup, weniger Magie
+- Spring Boot 4.0 has significantly split test modules
+- `@WebMvcTest` requires additional dependencies that are not all available
+- Mockito unit tests are faster and Spring-independent
+- Simpler setup, less magic
 
-## Konsequenzen
+## Consequences
 
-### Test-Pattern
+### Test Pattern
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -61,13 +61,13 @@ class NoteControllerTest {
 </dependency>
 ```
 
-### Vorteile
+### Advantages
 
-- Schnelle Ausführung (kein Spring Context)
-- Klare Abhängigkeiten durch explizite Mocks
-- Keine Spring-Boot-Version-Abhängigkeiten in Tests
+- Fast execution (no Spring context)
+- Clear dependencies through explicit mocks
+- No Spring Boot version dependencies in tests
 
-### Nachteile
+### Disadvantages
 
-- Kein Test der Spring-Integration (RequestMapping, etc.)
-- Manuelle ResponseEntity-Prüfung statt MockMvc
+- No testing of Spring integration (RequestMapping, etc.)
+- Manual ResponseEntity verification instead of MockMvc

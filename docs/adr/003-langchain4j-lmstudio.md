@@ -1,37 +1,37 @@
-# ADR-003: LangChain4j mit LM Studio
+# ADR-003: LangChain4j with LM Studio
 
-**Status:** Akzeptiert  
-**Datum:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontext
+## Context
 
-Integration eines Vision-LLMs für Bildanalyse (OCR und Diagramm-Erkennung).
+Integration of a Vision LLM for image analysis (OCR and diagram recognition).
 
-## Entscheidung
+## Decision
 
-LangChain4j als Abstraktionsschicht, LM Studio als lokaler OpenAI-kompatibler Server.
+LangChain4j as abstraction layer, LM Studio as local OpenAI-compatible server.
 
-## Begründung
+## Rationale
 
-- LangChain4j bietet einheitliche API für verschiedene LLM-Provider
-- LM Studio ermöglicht lokale Modellausführung ohne Cloud-Abhängigkeit
-- OpenAI-kompatible API erleichtert zukünftigen Provider-Wechsel
-- Keine API-Kosten, volle Datenkontrolle
+- LangChain4j provides unified API for different LLM providers
+- LM Studio enables local model execution without cloud dependency
+- OpenAI-compatible API facilitates future provider changes
+- No API costs, full data control
 
-## Konsequenzen
+## Consequences
 
-### Konfiguration
+### Configuration
 
 ```properties
 lmstudio.base-url=http://127.0.0.1:1234/v1
 lmstudio.model-name=ministral-3b
 ```
 
-### Voraussetzungen
+### Prerequisites
 
-- LM Studio muss vor App-Start laufen
-- Vision-Modell (z.B. ministral-3b) muss geladen sein
-- Port 1234 muss frei sein
+- LM Studio must be running before app start
+- Vision model (e.g., ministral-3b) must be loaded
+- Port 1234 must be available
 
 ### LangChain4j Dependency
 
@@ -43,9 +43,9 @@ lmstudio.model-name=ministral-3b
 </dependency>
 ```
 
-### Mermaid-Code Bereinigung
+### Mermaid Code Cleanup
 
-Das LLM gibt manchmal Escape-Sequenzen zurück:
+The LLM sometimes returns escape sequences:
 
 ```java
 private String cleanMermaidCode(String code) {
