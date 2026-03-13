@@ -62,4 +62,4 @@ Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 This folder contains skills for automated tasks:
 
 - **update-api-docs**: Updates OpenAPI annotations and Arazzo workflows when API changes
-- **update-documentation**: Updates README, CONTEXT, comments when code changes (enforces English)
+- **finalize**: Updates documentation and commits changes - only triggered by "finalize" or "commit"
