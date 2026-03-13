@@ -196,13 +196,13 @@ public class NoteController {
             )
             @RequestBody ImageUploadRequest request) {
         try {
-            // Base64 zu byte[] konvertieren
+            // Convert Base64 to byte[]
             byte[] imageBytes = Base64.getDecoder().decode(request.getImageData());
             
-            // Bild analysieren
+            // Analyze image
             ImageAnalysisResult result = imageAnalysisService.analyzeImage(imageBytes, request.getMimeType());
             
-            // Notiz erstellen
+            // Create note
             Note note = new Note();
             note.setTitle(request.getTitle() != null ? request.getTitle() : generateTitle(result));
             note.setContent(result.getContent());
@@ -246,10 +246,10 @@ public class NoteController {
 
     private String generateTitle(ImageAnalysisResult result) {
         return switch (result.getType()) {
-            case DIAGRAM -> "Diagramm vom " + java.time.LocalDate.now();
-            case TEXT -> "Text vom " + java.time.LocalDate.now();
-            case IMAGE -> "Bild vom " + java.time.LocalDate.now();
-            case MARKDOWN -> "Notiz vom " + java.time.LocalDate.now();
+            case DIAGRAM -> "Diagram from " + java.time.LocalDate.now();
+            case TEXT -> "Text from " + java.time.LocalDate.now();
+            case IMAGE -> "Image from " + java.time.LocalDate.now();
+            case MARKDOWN -> "Note from " + java.time.LocalDate.now();
         };
     }
 }

@@ -1,6 +1,6 @@
 ---
 name: update-api-docs
-description: Aktualisiert OpenAPI-Annotationen und Arazzo-Workflows wenn REST-Endpoints hinzugefuegt oder geaendert werden
+description: Updates OpenAPI annotations and Arazzo workflows when REST endpoints are added or modified
 license: MIT
 compatibility: opencode
 metadata:
@@ -10,92 +10,92 @@ metadata:
 
 # Update API Documentation Skill
 
-Dieser Skill wird automatisch aktiviert, wenn REST-Endpoints hinzugefügt, geändert oder gelöscht werden.
+This skill is automatically activated when REST endpoints are added, modified, or deleted.
 
-## Wann diesen Skill verwenden
+## When to Use This Skill
 
-- Neuer REST-Endpoint wird erstellt
-- Bestehender Endpoint wird modifiziert (URL, Parameter, Response)
-- Endpoint wird gelöscht
-- Request/Response DTOs werden geändert
+- A new REST endpoint is created
+- An existing endpoint is modified (URL, parameters, response)
+- An endpoint is deleted
+- Request/response DTOs are changed
 
-## Aufgaben
+## Tasks
 
-### 1. OpenAPI-Annotationen aktualisieren
+### 1. Update OpenAPI Annotations
 
-Für jeden Controller-Endpoint müssen folgende Annotationen vorhanden sein:
+For each controller endpoint, the following annotations must be present:
 
 ```java
 @Operation(
-    summary = "Kurze Beschreibung (max 120 Zeichen)",
-    description = "Ausführliche Beschreibung mit Markdown-Support"
+    summary = "Short description (max 120 characters)",
+    description = "Detailed description with Markdown support"
 )
 @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Erfolg", 
+    @ApiResponse(responseCode = "200", description = "Success", 
         content = @Content(schema = @Schema(implementation = ResponseClass.class))),
-    @ApiResponse(responseCode = "404", description = "Nicht gefunden", 
+    @ApiResponse(responseCode = "404", description = "Not found", 
         content = @Content)
 })
 ```
 
-**Für Path-Parameter:**
+**For Path Parameters:**
 ```java
-@Parameter(description = "Beschreibung", required = true, example = "1")
+@Parameter(description = "Description", required = true, example = "1")
 @PathVariable Long id
 ```
 
-**Für Request Bodies:**
+**For Request Bodies:**
 ```java
 @io.swagger.v3.oas.annotations.parameters.RequestBody(
-    description = "Beschreibung",
+    description = "Description",
     required = true,
     content = @Content(schema = @Schema(implementation = RequestClass.class))
 )
 @RequestBody MyRequest request
 ```
 
-### 2. Entity/DTO Schema-Annotationen
+### 2. Entity/DTO Schema Annotations
 
-Für alle Felder in Entities und DTOs:
+For all fields in entities and DTOs:
 
 ```java
-@Schema(description = "Beschreibung des Feldes", example = "Beispielwert")
+@Schema(description = "Description of the field", example = "Example value")
 private String fieldName;
 ```
 
-Für Enums:
+For enums:
 ```java
-@Schema(description = "Art des Inhalts", enumAsRef = true)
+@Schema(description = "Type of content", enumAsRef = true)
 private ContentType contentType;
 ```
 
-### 3. Arazzo-Workflows aktualisieren
+### 3. Update Arazzo Workflows
 
-Die Datei `src/main/resources/static/arazzo.yaml` muss aktualisiert werden:
+The file `src/main/resources/static/arazzo.yaml` must be updated:
 
-**Bei neuem Endpoint:**
-1. Prüfen ob ein bestehender Workflow erweitert werden sollte
-2. Oder einen neuen Workflow erstellen wenn es ein neuer Use-Case ist
+**For a new endpoint:**
+1. Check if an existing workflow should be extended
+2. Or create a new workflow if it's a new use case
 
-**Workflow-Struktur:**
+**Workflow Structure:**
 ```yaml
 - workflowId: camelCaseWorkflowName
-  summary: Kurze Beschreibung
+  summary: Short description
   description: |
-    Ausführliche Beschreibung des Workflows.
-    Was macht der Workflow? Wann wird er verwendet?
+    Detailed description of the workflow.
+    What does the workflow do? When is it used?
   inputs:
     type: object
     properties:
       inputName:
         type: string
-        description: Beschreibung
+        description: Description
     required:
       - inputName
   steps:
     - stepId: stepName
-      description: Was dieser Schritt macht
-      operationId: controllerMethodName  # muss mit @Operation übereinstimmen
+      description: What this step does
+      operationId: controllerMethodName  # must match @Operation
       parameters:
         - name: id
           in: path
@@ -112,24 +112,24 @@ Die Datei `src/main/resources/static/arazzo.yaml` muss aktualisiert werden:
     finalOutput: $steps.stepName.outputs.result
 ```
 
-**operationId-Konvention:**
-- Muss dem Java-Methodennamen entsprechen
-- z.B. `getAllNotes`, `getNoteById`, `createNote`, `updateNote`, `deleteNote`
+**operationId Convention:**
+- Must match the Java method name
+- e.g., `getAllNotes`, `getNoteById`, `createNote`, `updateNote`, `deleteNote`
 
-### 4. Verifikation
+### 4. Verification
 
-Nach den Änderungen:
+After the changes:
 
-1. **App starten:** `./mvnw spring-boot:run`
-2. **OpenAPI JSON prüfen:** `curl http://localhost:8080/v3/api-docs | jq .`
-3. **Swagger UI testen:** http://localhost:8080/swagger-ui.html
-4. **Arazzo validieren:** YAML-Syntax prüfen
+1. **Start app:** `./mvnw spring-boot:run`
+2. **Check OpenAPI JSON:** `curl http://localhost:8080/v3/api-docs | jq .`
+3. **Test Swagger UI:** http://localhost:8080/swagger-ui.html
+4. **Validate Arazzo:** Check YAML syntax
 
-## Beispiel: Neuen Endpoint hinzufügen
+## Example: Adding a New Endpoint
 
-Wenn ein neuer Endpoint `/api/notes/{id}/tags` hinzugefügt wird:
+If a new endpoint `/api/notes/{id}/tags` is added:
 
-### Controller-Änderung:
+### Controller Change:
 ```java
 @Operation(
     summary = "Get tags for a note",
@@ -147,7 +147,7 @@ public ResponseEntity<List<String>> getNoteTags(
 }
 ```
 
-### Arazzo-Erweiterung:
+### Arazzo Extension:
 ```yaml
 - workflowId: manageNoteTags
   summary: Manage tags on a note
@@ -160,21 +160,21 @@ public ResponseEntity<List<String>> getNoteTags(
           value: $inputs.noteId
 ```
 
-## Checkliste
+## Checklist
 
-- [ ] `@Operation` mit summary und description
-- [ ] `@ApiResponses` für alle möglichen Status-Codes
-- [ ] `@Parameter` für alle Path/Query-Parameter
-- [ ] `@Schema` auf neuen DTOs/Entities
-- [ ] Arazzo-Workflow erstellt/aktualisiert
-- [ ] operationId stimmt mit Methodenname überein
-- [ ] App startet ohne Fehler
-- [ ] Swagger UI zeigt Endpoint korrekt an
+- [ ] `@Operation` with summary and description
+- [ ] `@ApiResponses` for all possible status codes
+- [ ] `@Parameter` for all path/query parameters
+- [ ] `@Schema` on new DTOs/entities
+- [ ] Arazzo workflow created/updated
+- [ ] operationId matches method name
+- [ ] App starts without errors
+- [ ] Swagger UI displays endpoint correctly
 
-## Referenz-Dateien
+## Reference Files
 
 - **Controller:** `src/main/java/com/mvolkert/note2mermaid/controller/NoteController.java`
 - **Entity:** `src/main/java/com/mvolkert/note2mermaid/entity/Note.java`
 - **DTOs:** `src/main/java/com/mvolkert/note2mermaid/dto/`
 - **Arazzo:** `src/main/resources/static/arazzo.yaml`
-- **OpenAPI Config:** SpringDoc auto-konfiguriert via `pom.xml`
+- **OpenAPI Config:** SpringDoc auto-configured via `pom.xml`

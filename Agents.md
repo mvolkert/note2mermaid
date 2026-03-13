@@ -8,6 +8,18 @@ This ensures that Unix-compatible commands work consistently and cross-platform 
 
 ---
 
+## Language Policy
+
+**All documentation and code must be in English.** This includes:
+
+- README.md, CONTEXT.md, AGENTS.md
+- All ADR files in `docs/adr/`
+- Code comments (JavaDoc, inline comments)
+- Commit messages
+- OpenAPI descriptions
+
+---
+
 ## Architecture Decisions (ADRs)
 
 Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
@@ -31,7 +43,7 @@ Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 - Package: `com.mvolkert.note2mermaid`
 - Constructor injection instead of `@Autowired`
 - Records for DTOs where possible
-- German comments allowed
+- All comments in English
 
 ### REST API
 - Base path: `/api/notes`
@@ -50,3 +62,4 @@ Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 This folder contains skills for automated tasks:
 
 - **update-api-docs**: Updates OpenAPI annotations and Arazzo workflows when API changes
+- **update-documentation**: Updates README, CONTEXT, comments when code changes (enforces English)

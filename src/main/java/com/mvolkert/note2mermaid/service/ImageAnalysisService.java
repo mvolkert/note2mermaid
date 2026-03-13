@@ -26,7 +26,7 @@ public class ImageAnalysisService {
     public void init() {
         this.chatModel = OpenAiChatModel.builder()
                 .baseUrl(baseUrl)
-                .apiKey("not-needed") // LM Studio benötigt keinen API Key
+                .apiKey("not-needed") // LM Studio does not require an API key
                 .modelName(modelName)
                 .maxTokens(2000)
                 .temperature(0.3)
@@ -34,8 +34,8 @@ public class ImageAnalysisService {
     }
 
     /**
-     * Analysiert ein Bild und gibt den erkannten Inhalt zurück.
-     * Bei Diagrammen wird Mermaid-Code generiert, bei Text wird OCR durchgeführt.
+     * Analyzes an image and returns the recognized content.
+     * For diagrams, Mermaid code is generated; for text, OCR is performed.
      */
     public ImageAnalysisResult analyzeImage(byte[] imageData, String mimeType) {
         String base64Image = Base64.getEncoder().encodeToString(imageData);
@@ -90,23 +90,23 @@ public class ImageAnalysisService {
         
         if (response.contains("TYPE: DIAGRAM")) {
             result.setType(ContentType.DIAGRAM);
-            // Mermaid-Code extrahieren
+            // Extract Mermaid code
             int start = response.indexOf("```mermaid");
             int end = response.indexOf("```", start + 10);
             String mermaidCode;
             if (start != -1 && end != -1) {
                 mermaidCode = response.substring(start + 10, end).trim();
             } else {
-                // Falls kein Code-Block, alles nach TYPE: DIAGRAM nehmen
+                // If no code block, take everything after TYPE: DIAGRAM
                 mermaidCode = response.substring(response.indexOf("TYPE: DIAGRAM") + 13).trim();
             }
-            // Escape-Sequenzen bereinigen
+            // Clean escape sequences
             mermaidCode = cleanMermaidCode(mermaidCode);
             result.setContent(mermaidCode);
         } else if (response.contains("TYPE: MARKDOWN")) {
             result.setType(ContentType.MARKDOWN);
             String markdownContent = response.substring(response.indexOf("TYPE: MARKDOWN") + 14).trim();
-            // Escape-Sequenzen bereinigen (LLM gibt manchmal \n statt echte Newlines)
+            // Clean escape sequences (LLM sometimes returns \n instead of actual newlines)
             markdownContent = cleanEscapeSequences(markdownContent);
             result.setContent(markdownContent);
         } else if (response.contains("TYPE: TEXT")) {
@@ -123,26 +123,26 @@ public class ImageAnalysisService {
     }
 
     /**
-     * Bereinigt Mermaid-Code von Escape-Sequenzen und formatiert ihn korrekt.
+     * Cleans Mermaid code from escape sequences and formats it correctly.
      */
     private String cleanMermaidCode(String code) {
         return cleanEscapeSequences(code)
-                // Doppelte Leerzeichen entfernen
+                // Remove double spaces
                 .replaceAll("  +", " ");
     }
 
     /**
-     * Bereinigt Text von Escape-Sequenzen (z.B. \n, \", \\).
+     * Cleans text from escape sequences (e.g., \n, \", \\).
      */
     private String cleanEscapeSequences(String text) {
         return text
-                // Escaped newlines zu echten Zeilenumbrüchen
+                // Escaped newlines to actual line breaks
                 .replace("\\n", "\n")
-                // Escaped Quotes zu normalen Quotes
+                // Escaped quotes to normal quotes
                 .replace("\\\"", "\"")
-                // Escaped Backslashes
+                // Escaped backslashes
                 .replace("\\\\", "\\")
-                // Leere Zeilen am Anfang/Ende entfernen
+                // Remove empty lines at start/end
                 .trim();
     }
 

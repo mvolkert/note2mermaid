@@ -64,7 +64,7 @@ public class Note {
         this.content = content;
     }
 
-    // Getter und Setter
+    // Getters and Setters
     public Long getId() {
         return id;
     }
