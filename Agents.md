@@ -45,6 +45,12 @@ Complete ADRs are located in [`docs/adr/`](docs/adr/README.md).
 - Records for DTOs where possible
 - All comments in English
 
+### Testing
+- Write unit tests for all new code
+- Target test coverage: **>80%**
+- Use pure Mockito (see ADR-007)
+- Test pattern: Given/When/Then
+
 ### REST API
 - Base path: `/api/notes`
 - ResponseEntity for all endpoints
